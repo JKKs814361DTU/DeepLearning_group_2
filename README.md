@@ -19,5 +19,6 @@ January 2023
 ## Structure of files
 
 In this folder you can find the following files:
+ - Main data preparation file
  - ****
  - ****
