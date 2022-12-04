@@ -110,3 +110,44 @@ class PlottingMixin:
             fmin=fmin,
             fmax=fmax,
         )
+        
+# Location: mros_data\datamodule\mixins\plotting_mixin.py
+# MS: The following method was added to return the matrix representation of the spectrogram. It is used exactly as the
+# previous method plot_spect(), but this time, instead of plotting, it return the array representing the spectrogram.
+    def get_2Dmatrix(
+        self,
+        idx: int,
+        channel_idx: int = 0,
+        display_type: str = "hz",
+        step_size: Optional[int] = None,
+        window_size: Optional[int] = None,
+        nfft: Optional[int] = None,
+        ax: Optional[Axes] = None,
+        fmin: Optional[float] = None,
+        fmax: Optional[float] = None,
+    ) -> Tuple[Figure, Axes]:
+
+        # Check for any transforms
+        transform = getattr(self, "transform", None)
+
+        sample = self[idx]
+        record = sample["record"]
+        data = sample["signal"]
+        events = sample["events"]
+        fs = self.fs
+
+        if transform is None:
+            S = stft(data[channel_idx], n_fft=nfft, hop_length=step_size, win_length=window_size)
+            S_db = power_to_db(np.abs(S) ** 2, top_db=50) / 50
+        else:
+            S_db = data[channel_idx]
+            step_size = transform.step_size
+            window_size = transform.segment_size
+            nfft = transform.nfft
+
+        # logger.info(f"{S_db.shape=}")
+        if display_type == "mel":
+            S_db = melspectrogram(S=S_db, sr=fs, n_fft=nfft, hop_length=step_size, win_length=window_size, n_mels=20)
+        # logger.info(f"{S_db.shape=}")
+        
+        return S_db
